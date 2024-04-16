@@ -1,0 +1,8 @@
+@font-face {
+    font-family: 'Quicksand';
+    src: url('/assets/fonts/Quicksand.ttf') format('truetype');
+  }
+  
+  body {
+    font-family: 'Quicksand', sans-serif;
+  }
