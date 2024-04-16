@@ -85,11 +85,9 @@
     "electron-debug": "^3.2.0",
     "electron-log": "^4.4.8",
     "electron-updater": "^6.1.4",
-    "knex": "^3.1.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^6.16.0",
-    "sqlite3": "^5.1.7"
+    "react-router-dom": "^6.16.0"
   },
   "devDependencies": {
     "@electron/notarize": "^2.1.0",
@@ -166,7 +164,8 @@
     "files": [
       "dist",
       "node_modules",
-      "package.json"
+      "package.json",
+      "knexfile.js"
     ],
     "afterSign": ".erb/scripts/notarize.js",
     "mac": {
@@ -216,10 +215,16 @@
     "extraResources": [
       "./assets/**"
     ],
+    "extraFiles": [
+      {
+        "from": "data",
+        "to": "data"
+      }
+    ],
     "publish": {
       "provider": "github",
-      "owner": "electron-react-boilerplate",
-      "repo": "electron-react-boilerplate"
+      "owner": "nextapp",
+      "repo": "nextapp"
     }
   },
   "devEngines": {

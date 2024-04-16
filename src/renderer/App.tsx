@@ -19,12 +19,17 @@ function Home() {
       action: 'save-product',
       params: {},
       payload: {
-        name: '',
-        description: '',
+        name: 'Test Product 1',
+        description: `Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy`,
         quantity: 50,
+        price: 120
       }
     });
-
+    window.electron.ipcRenderer.sendMessage('action', {
+      action: 'get-products',
+      params: {},
+      payload: {}
+    });
     // Clean-up function to remove the event listener when component unmounts
     return () => {
       window.electron.ipcRenderer.removeListener('action-result', handleActionResult);

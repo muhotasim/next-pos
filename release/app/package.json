@@ -4,14 +4,17 @@
     "description": "POS software",
     "license": "MIT",
     "author": {
-      "name": "Muhotasim Fuad",
-      "email": "muhotasimF@gmail.com"
+        "name": "Muhotasim Fuad",
+        "email": "muhotasimF@gmail.com"
     },
     "main": "./dist/main/main.js",
     "scripts": {
-      "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
-      "postinstall": "npm run rebuild && npm run link-modules",
-      "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
+        "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
+        "postinstall": "npm run rebuild && npm run link-modules",
+        "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
     },
-    "dependencies": {}
-  }
+    "dependencies": {
+        "knex": "^3.1.0",
+        "sqlite3": "^5.1.7"
+    }
+}
