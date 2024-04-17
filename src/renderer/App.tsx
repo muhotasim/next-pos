@@ -2,7 +2,8 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import icon from '../../assets/icon.svg';
 import './App.css';
 import { useEffect, useState } from 'react';
-
+import { useSelector, useDispatch } from 'react-redux'
+import Login from './component/Login';
 function Home() {
   const [data, setData] = useState('')
   useEffect(() => {
@@ -45,6 +46,15 @@ function Home() {
 }
 
 export default function App() {
+  
+  const isLogedIn = useSelector((state:any)=>state.rootState.isLogedIn)
+  console.log(isLogedIn)
+
+  if(!isLogedIn){
+    return <>
+      <Login/>
+    </>
+  }
   return (
     <Router>
       <Routes>
