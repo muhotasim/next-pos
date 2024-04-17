@@ -1,5 +1,16 @@
-import { createCategory, createCustomer, createEmployee, createProduct, deleteCategory, deleteCustomer, deleteEmployee, deleteProduct, getCategories, getCategoryById, getCustomerById, getCustomers, getEmployeeById, getEmployies, getProductById, getProducts, sellItems, updateCategory, updateCustomer, updateEmployee, updateProduct } from "./db-actions"
+import { createCategory, createCustomer, createEmployee, createProduct, deleteCategory, deleteCustomer, deleteEmployee, deleteProduct, getCategories, getCategoryById, getCustomerById, getCustomerReport, getCustomers, getEmployeeById, getEmployeeByUserName, getEmployeePerformance, getEmployies, getInventoryReport, getProductById, getProducts, getSalesReport, getTopSell, sellItems, updateCategory, updateCustomer, updateEmployee, updateProduct } from "./db-actions"
+const crypto = require('crypto');
+function createHash(data) {
+    const hash = crypto.createHash('md5');
+    hash.update(data);
+    return hash.digest('hex');
+}
 
+// Function to verify a hash
+function verifyHash(data, hashToCompare) {
+    const generatedHash = createHash(data);
+    return generatedHash === hashToCompare;
+}
 export const actionController: { [key: string]: any } = {
     // products crud
     'save-product': async (event: any, body: any) => {
@@ -104,7 +115,7 @@ export const actionController: { [key: string]: any } = {
             FirstName: payload.firstName,
             LastName: payload.lastName,
             Username: payload.username,
-            Password: payload.password,
+            Password: createHash(payload.password),
             Email: payload.email,
             Phone: payload.phone,
             Role: payload.role,
@@ -147,11 +158,16 @@ export const actionController: { [key: string]: any } = {
     'update-employee': async (event: any, body: any) => {
         const id = body.params.id;
         const payload = body.payload;
+        const employeeInfo = await getEmployeeById(id);
+        let password = employeeInfo.password;
+        if(payload.password!=password){
+            password = createHash(payload.password)
+        }
         const result = await updateEmployee(id, {
             FirstName: payload.firstName,
             LastName: payload.lastName,
             Username: payload.username,
-            Password: payload.password,
+            Password: password,
             Email: payload.email,
             Phone: payload.phone,
             Role: payload.role,
@@ -160,6 +176,18 @@ export const actionController: { [key: string]: any } = {
         if (result) {
             event(body)
         } else {
+            event({})
+        }
+    },
+
+    // login
+    'login': async (event: any, body: any) => {
+        const {username, password} = body.payload;
+        const employee = await getEmployeeByUserName(username);
+        const verifyPassword = verifyHash(password, employee.password);
+        if(verifyPassword){
+            event(employee)
+        }else{
             event({})
         }
     },
@@ -235,6 +263,27 @@ export const actionController: { [key: string]: any } = {
         } else {
             event({})
         }
+    },
+    // reports
+    'reports-sales': async (event: any, body: any) => {
+        const result = await getSalesReport()
+        event(result)
+    },
+    'reports-inventory': async (event: any, body: any) => {
+        const result = await getInventoryReport()
+        event(result)
+    },
+    'reports-top-sell': async (event: any, body: any) => {
+        const result = await getTopSell()
+        event(result)
+    },
+    'reports-customer': async (event: any, body: any) => {
+        const result = await getCustomerReport()
+        event(result)
+    },
+    'reports-employee-performance': async (event: any, body: any) => {
+        const result = await getEmployeePerformance()
+        event(result)
     }
 }
 export const actions = (ipcMain: any) => {

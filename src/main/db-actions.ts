@@ -273,7 +273,11 @@ export const createEmployee = async (employeeData) => {
     return false;
   }
 };
-
+export const getEmployeeByUserName = async (username)=>{
+  const employee = await db('Employees').where('Username', '=', `${username}`)
+  .orWhere('Email', '=', `${username}`).first()
+  return employee
+}
 // Read operation
 export const getEmployeeById = async (employeeId) => {
   try {
