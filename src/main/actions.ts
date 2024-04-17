@@ -288,7 +288,6 @@ export const actionController: { [key: string]: any } = {
 }
 export const actions = (ipcMain: any) => {
     ipcMain.on('action', async (event: any, arg: any) => {
-        console.log('action:', arg.action)
         await actionController[arg.action]((body: any) => {
             event.reply('action-result', body)
         }, arg);
