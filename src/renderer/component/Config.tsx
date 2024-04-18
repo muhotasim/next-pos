@@ -149,7 +149,7 @@ export const Config = ({ goBack }) => {
                         rules={[{ required: true, message: 'Please input shop address!' }]}
                         hidden={step == 1}
                     >
-                        <Input />
+                        <Input.TextArea />
                     </Form.Item>
                     <Form.Item
                         name="lang"

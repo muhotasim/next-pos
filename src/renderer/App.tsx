@@ -7,6 +7,8 @@ import { Home } from './component/Home';
 import { Config } from './component/Config';
 import { Actions } from './root.store';
 import { Spin } from 'antd';
+import { CreateProduct } from './component/CreateProduct';
+import { Products } from './component/Products';
 
 export default function App() {
   const dispatch = useDispatch()
@@ -65,6 +67,8 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/create-product" element={<CreateProduct />} />
       </Routes>
     </Router>
   );

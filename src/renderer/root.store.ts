@@ -1,6 +1,5 @@
 import { combineReducers, configureStore  } from "@reduxjs/toolkit";
-
-const initialState:{
+export interface StateType {
     isLogedIn: boolean,
     user: {
         firstName: string,
@@ -15,7 +14,8 @@ const initialState:{
     cartItems: any[],
     isLoading: boolean,
     config: any
-} = {
+} 
+const initialState:StateType= {
     isLogedIn: false,
     user: {
         firstName: '',
