@@ -1,8 +1,31 @@
+:root{
+  --primary-color:#2C228C;
+  --secondary-color-1:#84D2F6;
+  --secondary-color-2:#59A5D8;
+  --secondary-color-3:#93B9E8;
+}
 @font-face {
     font-family: 'Quicksand';
     src: url('/assets/fonts/Quicksand.ttf') format('truetype');
   }
-  
+  html{
+    
+    font-size: 9px;
+  }
   body {
     font-family: 'Quicksand', sans-serif;
+  }
+  .login-panel{
+    position: absolute;
+    border: 1px solid var(--secondary-color-1);
+    width: 400px;
+    max-width: 90%;
+    padding: 2rem;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    border-radius: 5px;
+    box-shadow: 2px 3px 5px var(--secondary-color-2);
+    /* max-height: 68rem; */
+    overflow-y: auto;
   }

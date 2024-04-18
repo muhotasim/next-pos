@@ -1,5 +1,6 @@
 import knex from 'knex';
 import knexConfig from '../../knexfile';
+import { actionController } from './actions';
 
 const db = knex(knexConfig.development);
 
@@ -545,3 +546,35 @@ export const getEmployeePerformance = async () => {
     .sum('TotalAmount as TotalSales')
     .groupBy('EmployeeID');
 }
+export const getConfig = async ()=>{
+  const config = await db('Config').first();
+  return config;
+}
+
+export const saveOrUpdateConfig = async ({
+  ShopName,
+  ShopAddress,
+  Lang,
+  Phone,
+  Phone2
+})=>{
+  const config = await db('Config').first();
+  if(config){
+    await db('Config').update({
+      ShopName,
+      ShopAddress,
+      Lang,
+      Phone,
+      Phone2
+    }).where('id', config.id);
+  }else{
+    await db('Config').insert({
+      ShopName,
+      ShopAddress,
+      Lang,
+      Phone,
+      Phone2
+    });
+  }
+  return true;
+} 
