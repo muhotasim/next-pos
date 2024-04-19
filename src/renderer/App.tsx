@@ -1,4 +1,4 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
+import { MemoryRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
@@ -9,6 +9,18 @@ import { Actions } from './root.store';
 import { Spin } from 'antd';
 import { CreateProduct } from './component/CreateProduct';
 import { Products } from './component/Products';
+import { Seller } from './component/Seller';
+import { Employee } from './component/Employee';
+import { CreateEmployee } from './component/CreateEmployee';
+import { Reports } from './component/Report';
+import { SalesReport } from './reports/SalesReport';
+import { InventoryReport } from './reports/InventoryReport';
+import { TopSellReport } from './reports/TopSellReport';
+
+const ConfRapper = ()=>{
+  const navigate = useNavigate()
+  return <Config goBack={()=>{navigate('/')}}/>;
+}
 
 export default function App() {
   const dispatch = useDispatch()
@@ -41,14 +53,16 @@ export default function App() {
     setLoading(false);
   };
   useEffect(() => {
-    window.electron.ipcRenderer.on('action-result', handleActionResult);
+   const uneventCallback = window.electron.ipcRenderer.on('action-result', handleActionResult);
     setLoading(true);
     window.electron.ipcRenderer.sendMessage('action', {
       action: 'get-config',
       params: {},
       payload: {}
     });
-
+    return ()=>{
+      if(uneventCallback) uneventCallback();
+    }
   }, [])
   if (loading) {
     return <div style={{ padding: '20px', margin: '30px', textAlign: 'center' }}>
@@ -56,7 +70,7 @@ export default function App() {
     </div>
   }
   if (!config.id) {
-    return <Config />
+    return <Config goBack={null}/>
   }
   if (!isLogedIn) {
     return <>
@@ -69,6 +83,18 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/products" element={<Products />} />
         <Route path="/create-product" element={<CreateProduct />} />
+        <Route path="/products/edit/:id" element={<CreateProduct />} />
+        <Route path="/seller" element={<Seller />} />
+        <Route path="/employee" element={<Employee />} />
+        <Route path="/reports" element={<Reports />} />
+        <Route path="/sales-report" element={<SalesReport />} />
+        <Route path="/inventory-report" element={<InventoryReport />} />
+        <Route path="/top-sell-report" element={<TopSellReport />} />
+        
+        <Route path="/employee/create-employee" element={<CreateEmployee />} />
+        <Route path="/employee/edit-employee/:id" element={<CreateEmployee />} />
+       
+        <Route path="/config" element={<ConfRapper/>} />
       </Routes>
     </Router>
   );

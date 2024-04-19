@@ -7,9 +7,13 @@ exports.up = function(knex) {
       table.increments('ProductID').primary();
       table.string('Name').notNullable();
       table.string('Description');
+      table.string('ImgALoc');
+      table.decimal('RealPrice', 10, 2).notNullable();
+      table.decimal('RegularPrice', 10, 2).notNullable();
       table.decimal('Price', 10, 2).notNullable();
+      table.decimal('Discount', 3).notNullable();
       table.integer('QuantityAvailable').defaultTo(0);
-      table.integer('CategoryID').unsigned().references('CategoryID').inTable('Categories');
+      table.json('Categories').defaultTo([]);
       table.boolean('Active').defaultTo(1);
     });
   };

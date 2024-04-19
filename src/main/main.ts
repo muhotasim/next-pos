@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -57,7 +57,17 @@ const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
   }
-
+  function createPrintWindow(htmlContent) {
+    const printWindow = new BrowserWindow({ show: false });
+    printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURI(htmlContent)}`);
+    
+    printWindow.webContents.on('did-finish-load', () => {
+      printWindow.webContents.print({ silent: true, printBackground: true });
+      setTimeout(() => {
+        printWindow.close();
+      }, 1000);
+    });
+  }
   const RESOURCES_PATH = app.isPackaged
     ? path.join(process.resourcesPath, 'assets')
     : path.join(__dirname, '../../assets');
@@ -65,13 +75,35 @@ const createWindow = async () => {
   const getAssetPath = (...paths: string[]): string => {
     return path.join(RESOURCES_PATH, ...paths);
   };
-
+  ipcMain.on('print-receipt', (event, receiptData) => {
+    // Generate HTML content for receipt based on receiptData
+    const htmlContent = `
+      <html>
+        <head>
+          <style>
+            /* CSS styles for receipt */
+          </style>
+        </head>
+        <body>
+        <h1>Barcodes</h1>
+          <!-- Receipt content -->
+          <div>${receiptData}</div>
+        </body>
+      </html>
+    `;
+  console.log(htmlContent)
+    // Create and print the receipt
+    createPrintWindow(htmlContent);
+  });
   mainWindow = new BrowserWindow({
     show: false,
     width: 1024,
     height: 728,
     icon: getAssetPath('icon.png'),
     webPreferences: {
+      webSecurity: false,
+      nodeIntegration: true,
+      // contextIsolation: false,
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),

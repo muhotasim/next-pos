@@ -4,16 +4,22 @@ import { actionController } from './actions';
 
 const db = knex(knexConfig.development);
 
-export const createProduct = async ({ Name, Description, Price, QuantityAvailable, CategoryID }) => {
+export const createProduct = async ({ Name, Description, Price, QuantityAvailable, RealPrice, RegularPrice, ImgALoc, Discount, Categories }) => {
   try {
     const newProduct = {
-      Name, Description, Price, QuantityAvailable, CategoryID
+      Name, Description, Price, QuantityAvailable, RealPrice, RegularPrice, ImgALoc, Discount, Categories
     };
+    console.log(newProduct)
     await db('Products').insert(newProduct).returning('*');
     return true;
   } catch (error) {
     return false;
   }
+}
+export const getAllProducts =async()=>{
+  const products = db('Products')
+      .select('*');
+      return await products;
 }
 export const getProducts = async (pageNumber, perPage, searchQuery, filters: any) => {
   try {
@@ -115,7 +121,11 @@ export const createCategory = async (categoryData) => {
     return false;
   }
 }
-
+export const getAllCategories = async () => {
+  const categoriesQuery = db('Categories')
+      .select('*')
+  return categoriesQuery;
+}
 export const getCategories = async (pageNumber, perPage, searchQuery, filters: any) => {
   try {
     // Calculate the offset based on the page number and perPage
@@ -274,6 +284,19 @@ export const createEmployee = async (employeeData) => {
     return false;
   }
 };
+export const getDashboardData=async()=>{
+  const numberOfActiveSKU = await db('Products').where('Active', 1).count({total: 'ProductID'});
+  
+  const currentDate = new Date();
+  const formattedDate = currentDate.toISOString().split('T')[0];
+  const todaysSell = await db('Sales').whereRaw("date(SaleDate) = ?", [formattedDate] ).sum({total: "TotalAmount"})
+  console.log("todays Sell: ",todaysSell)
+  return {numberOfActiveSKU:numberOfActiveSKU[0].total, todaysSell: todaysSell[0].total}
+}
+export const getEmployiesAllActive = async ()=>{
+  const result = await db('Employees').where('Active', 1)
+  return result
+}
 export const getEmployeeByUserName = async (username)=>{
   const employee = await db('Employees').where('Username', '=', `${username}`)
   .orWhere('Email', '=', `${username}`).first()
@@ -322,7 +345,10 @@ export const deleteEmployee = async (employeeId) => {
 };
 
 
-
+export const getCustomersByPhone = async (phone)=>{
+  const customers = db('Customers').where('Phone', phone).limit(5)
+  return customers;
+}
 export const getCustomers = async (pageNumber, perPage, searchQuery, filters: any) => {
   try {
     // Calculate the offset based on the page number and perPage
@@ -451,7 +477,9 @@ export const sellItems = async (customerId, employeeId, items) => {
         SaleID: saleId,
         ProductID: item.productID,
         Quantity: item.quantity,
-        UnitPrice: item.unitPrice
+        UnitPrice: item.unitPrice,
+        RealPrice: item.realPrice,
+        UnitDisAmount: item.discount
       });
 
       await trx('Products')
@@ -468,7 +496,7 @@ export const sellItems = async (customerId, employeeId, items) => {
 }
 
 function getTotalAmount(items) {
-  return items.reduce((total, item) => total + (item.quantity * item.unitPrice), 0);
+  return items.reduce((total, item) => Number(total) + (Number(item.quantity) * Number(item.unitPrice)), 0);
 }
 export const markProductAsUnsold = async (saleId) => {
   const trx = await db.transaction();
@@ -517,16 +545,16 @@ export const getSalesReport = async () => {
 
 export const getInventoryReport = async () => {
   return await db('Products')
-    .select('ProductName', 'QuantityAvailable')
-    .orderBy('ProductName');
+    .select("ProductID",'Name', 'QuantityAvailable')
+    .orderBy('ProductID');
 }
 
 export const getTopSell = async () => {
   return await db('SaleItems')
-    .select('ProductID', 'ProductName')
+    .select('Products.ProductID', 'Name')
     .sum('Quantity as TotalQuantitySold')
     .leftJoin('Products', 'SaleItems.ProductID', 'Products.ProductID')
-    .groupBy('ProductID', 'ProductName')
+    .groupBy('Products.ProductID', 'Name')
     .orderByRaw('TotalQuantitySold DESC')
 }
 
@@ -559,6 +587,7 @@ export const saveOrUpdateConfig = async ({
   Phone2
 })=>{
   const config = await db('Config').first();
+  console.log( config.ConfigID)
   if(config){
     await db('Config').update({
       ShopName,
@@ -566,7 +595,7 @@ export const saveOrUpdateConfig = async ({
       Lang,
       Phone,
       Phone2
-    }).where('id', config.id);
+    }).where('ConfigID', config.ConfigID);
   }else{
     await db('Config').insert({
       ShopName,

@@ -8,7 +8,9 @@ exports.up = function(knex) {
       table.integer('SaleID').unsigned().references('SaleID').inTable('Sales');
       table.integer('ProductID').unsigned().references('ProductID').inTable('Products');
       table.integer('Quantity').notNullable();
+      table.decimal('RealPrice', 10, 2).notNullable();
       table.decimal('UnitPrice', 10, 2).notNullable();
+      table.decimal('UnitDisAmount', 10, 2).notNullable();
     });
   };
   

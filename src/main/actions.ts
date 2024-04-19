@@ -1,11 +1,24 @@
 
-import { createCategory, createCustomer, getConfig, createEmployee, createProduct, deleteCategory, deleteCustomer, deleteEmployee, deleteProduct, getCategories, getCategoryById, getCustomerById, getCustomerReport, getCustomers, getEmployeeById, getEmployeeByUserName, getEmployeePerformance, getEmployies, getInventoryReport, getProductById, getProducts, getSalesReport, getTopSell, saveOrUpdateConfig, sellItems, updateCategory, updateCustomer, updateEmployee, updateProduct } from "./db-actions"
+import { readFile, writeFile } from "fs/promises";
+import { createCategory, createCustomer, getConfig, createEmployee, createProduct, deleteCategory, deleteCustomer, deleteEmployee, deleteProduct, getCategories, getCategoryById, getCustomerById, getCustomerReport, getCustomers, getEmployeeById, getEmployeeByUserName, getEmployeePerformance, getEmployies, getInventoryReport, getProductById, getProducts, getSalesReport, getTopSell, saveOrUpdateConfig, sellItems, updateCategory, updateCustomer, updateEmployee, updateProduct, getAllProducts, getAllCategories, addStockToProduct, getEmployiesAllActive, getCustomersByPhone, getDashboardData } from "./db-actions"
+import path from "path";
+import { app } from "electron";
 const crypto = require('crypto');
+// const sharp = require('sharp');
+const Jimp = require('jimp');
+const fs = require('fs');
 function createHash(data) {
     const hash = crypto.createHash('md5');
     hash.update(data);
     return hash.digest('hex');
 }
+const RESOURCES_PATH = app.isPackaged
+? path.join(process.resourcesPath, 'assets')
+: path.join(__dirname, '../../assets');
+
+const getAssetPath = (...paths: string[]): string => {
+return path.join(RESOURCES_PATH, ...paths);
+};
 
 // Function to verify a hash
 function verifyHash(data, hashToCompare) {
@@ -14,9 +27,92 @@ function verifyHash(data, hashToCompare) {
 }
 export const actionController: { [key: string]: any } = {
     // products crud
+    // 'save-product': async (event: any, body: any) => {
+    //     const payload = body.payload;
+    //     const productData:any = { Name: payload.name,
+    //         Description: payload.description ?? '',
+    //         QuantityAvailable: payload.quantity,
+    //         RealPrice: payload.realprice,
+    //         RegularPrice: payload.regularprice,
+    //         Discount: payload.discount,
+    //         Price: payload.price, Categories: payload.category?JSON.stringify(payload.category):JSON.stringify([]) }
+    //     let outputPath = ''
+    //     if(payload.file){
+    //         const filePath = '/assets/uploads'
+    //         const file = await readFile(payload.file);
+    //         const resizedBuffer = await sharp(file)
+    //             .resize(256, 256)
+    //             .toBuffer();
+    //         const assetsDir = path.join(__dirname, '../..'+filePath);
+    //         const outputFileName = 'p_img_'+new Date().getTime()+'.png';
+    //         outputPath = path.join(assetsDir, outputFileName);
+    //         await writeFile(outputPath, resizedBuffer);
+            
+    //         productData.ImgALoc= payload.file?`/uploads/${outputFileName}`:'';
+    //     }
+        
+    //     const result = await createProduct(productData)
+    //        await createCategory(payload.category.map((c)=>({Name: c})))
+        
+    //     if (result) {
+    //         event({
+    //             action: 'save-product',
+    //             data: body,
+    //             success: true
+    //         })
+    //     } else {
+    //         event({
+    //             action: 'save-product',
+    //             data: null,
+    //             success: false
+    //         })
+    //     }
+    // },
+    'dashboard': async (event: any, body: any) => {
+        const result = await getDashboardData();
+        console.log(result)
+        if (result) {
+            event({
+                action: 'dashboard',
+                data: result,
+                success: true
+            })
+        } else {
+            event({
+                action: 'dashboard',
+                data: null,
+                success: false
+            })
+        }
+    },
     'save-product': async (event: any, body: any) => {
         const payload = body.payload;
-        const result = await createProduct({ Name: payload.name, Description: payload.description, QuantityAvailable: payload.quantity, Price: payload.price, CategoryID: null })
+        const productData:any = { Name: payload.name,
+            Description: payload.description ?? '',
+            QuantityAvailable: payload.quantity,
+            RealPrice: payload.realprice,
+            RegularPrice: payload.regularprice,
+            Discount: payload.discount,
+            Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
+        let outputPath = ''
+        if (payload.file) {
+            const filePath = '/assets/uploads'
+            const assetsDir = path.join(__dirname, '../..' + filePath);
+            const outputFileName = 'p_img_' + new Date().getTime() + '.png';
+            outputPath = path.join(assetsDir, outputFileName);
+            const file = await readFile(payload.file);
+            const image = await Jimp.read(file);
+            const resizedImage = image.resize(256, 256);
+            
+
+            await resizedImage.writeAsync(outputPath);
+            
+            productData.ImgALoc = payload.file ? `/uploads/${outputFileName}` : '';
+        }
+        
+        const result = await createProduct(productData);
+        await createCategory(payload.category.map((c) => ({ Name: c })));
+        
         if (result) {
             event({
                 action: 'save-product',
@@ -48,10 +144,33 @@ export const actionController: { [key: string]: any } = {
             })
         }
     },
+    'get-all-products':  async (event: any, body: any) => {
+        const products = await getAllProducts();
+        if (products.length) {
+            event({
+                action: 'get-all-products',
+                data: products.map((d)=>{
+                    d.ImgALoc = d.ImgALoc?getAssetPath(d.ImgALoc):''
+                    return d
+                }),
+                success: true
+            })
+        } else {
+
+            event({
+                action: 'get-all-products',
+                data: null,
+                success: false
+            })
+        }
+
+    },
+
     'get-products': async (event: any, body: any) => {
         const payload = body.payload;
         const { page = 1, perPage = 10, searchQuery = '', filters = {} } = body.params;
         const results = await getProducts(page, perPage, searchQuery, filters);
+       
         if (results) {
             event({
                 action: 'get-products',
@@ -69,6 +188,10 @@ export const actionController: { [key: string]: any } = {
     'get-products-by-id': async (event: any, body: any) => {
         const id = body.params.id;
         const results = await getProductById(id);
+        if(results.ImgALoc){
+            results.ImgALoc = getAssetPath(results.ImgALoc);
+        }
+        console.log('product: ', results)
         if (results) {
             event({
                 action: 'get-products-by-id',
@@ -83,24 +206,92 @@ export const actionController: { [key: string]: any } = {
             })
         }
     },
-    'update-product': async (event: any, body: any) => {
-        const id = body.params.id;
-        const payload = body.payload;
-        const result = await updateProduct(id, { Name: payload.name, Description: payload.description, QuantityAvailable: payload.quantity, Price: payload.price, CategoryID: null })
-        if (result) {
-            event({
-                action: 'update-product',
-                data: result,
-                success: true
-            })
-        } else {
-            event({
-                action: 'update-product',
-                data: null,
-                success: false
-            })
-        }
-    },
+    // 'update-product': async (event: any, body: any) => {
+        
+    //     const id = body.params.id;
+    //     const prevProduct = await getProductById(id);
+    //     const payload = body.payload;
+    //     let outputPath = ''
+    //     const upProductData:any = { Name: payload.name,
+    //         Description: payload.description ?? '',
+    //         QuantityAvailable: payload.quantity,
+    //         RealPrice: payload.realprice,
+    //         RegularPrice: payload.regularprice,
+    //         Discount: payload.discount,
+    //         Price: payload.price, Categories: payload.category?JSON.stringify(payload.category):JSON.stringify([]) }
+    //     if(payload.file &&prevProduct.ImgALoc!=payload.file){
+    //         const filePath = '/assets/uploads'
+    //         const file = await readFile(payload.file);
+    //         const resizedBuffer = await sharp(file)
+    //             .resize(256, 256)
+    //             .toBuffer();
+    //         const assetsDir = path.join(__dirname, '../..'+filePath);
+    //         const outputFileName = 'p_img_'+new Date().getTime()+'.png';
+    //         outputPath = path.join(assetsDir, outputFileName);
+    //         await writeFile(outputPath, resizedBuffer);
+            
+    //         upProductData.ImgALoc= payload.file?`/uploads/${outputFileName}`:'';
+    //     }
+        
+    //     const result = await updateProduct(id, upProductData)
+    //     if (result) {
+    //         event({
+    //             action: 'update-product',
+    //             data: result,
+    //             success: true
+    //         })
+    //     } else {
+    //         event({
+    //             action: 'update-product',
+    //             data: null,
+    //             success: false
+    //         })
+    //     }
+    // },
+  
+'update-product': async (event: any, body: any) => {
+    const id = body.params.id;
+    const prevProduct = await getProductById(id);
+    const payload = body.payload;
+    let outputPath = ''
+    const upProductData:any = { Name: payload.name,
+        Description: payload.description ?? '',
+        QuantityAvailable: payload.quantity,
+        RealPrice: payload.realprice,
+        RegularPrice: payload.regularprice,
+        Discount: payload.discount,
+        Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
+    if (payload.file && prevProduct.ImgALoc != payload.file) {
+        const filePath = '/assets/uploads'
+        const assetsDir = path.join(__dirname, '../..' + filePath);
+        const outputFileName = 'p_img_' + new Date().getTime() + '.png';
+        outputPath = path.join(assetsDir, outputFileName);
+        const file = await readFile(payload.file);
+        const image = await Jimp.read(file);
+        await image.resize(256, 256)
+            .writeAsync(outputPath);
+        
+
+        await image.writeAsync(outputPath);
+        
+        upProductData.ImgALoc = payload.file ? `/uploads/${outputFileName}` : '';
+    }
+    
+    const result = await updateProduct(id, upProductData)
+    if (result) {
+        event({
+            action: 'update-product',
+            data: result,
+            success: true
+        })
+    } else {
+        event({
+            action: 'update-product',
+            data: null,
+            success: false
+        })
+    }
+},
     // category crud
     'save-category': async (event: any, body: any) => {
         const payload = body.payload;
@@ -131,6 +322,23 @@ export const actionController: { [key: string]: any } = {
         } else {
             event({
                 action: 'delete-category',
+                data: null,
+                success: false
+            })
+        }
+    },
+    'get-all-category': async (event: any, body: any) => {
+        
+        const results = await getAllCategories();
+        if (results) {
+            event({
+                action: 'get-all-category',
+                data: results,
+                success: true
+            })
+        } else {
+            event({
+                action: 'get-all-category',
                 data: null,
                 success: false
             })
@@ -272,8 +480,10 @@ export const actionController: { [key: string]: any } = {
         const id = body.params.id;
         const payload = body.payload;
         const employeeInfo = await getEmployeeById(id);
-        let password = employeeInfo.password;
+        let password = employeeInfo.Password;
+        // console.log('Password:',password,payload.password)
         if (payload.password != password) {
+            // console.log('password: ',payload.password, payload.password==password)
             password = createHash(payload.password)
         }
         const result = await updateEmployee(id, {
@@ -325,13 +535,10 @@ export const actionController: { [key: string]: any } = {
     'save-customer': async (event: any, body: any) => {
         const payload = body.payload;
         const result = await createCustomer({
-            FirstName: payload.firstName,
-            LastName: payload.lastName,
-            Email: payload.email,
-            Phone: payload.phone,
-            Address: payload.address,
-            Active: payload.active,
+            Name: payload.Name,
+            Phone: payload.Phone,
         })
+        console.log(result,payload)
         if (result) {
             event({
                 action: 'save-customer',
@@ -423,6 +630,39 @@ export const actionController: { [key: string]: any } = {
             })
         }
     },
+    'all-active-employee': async (event: any, body: any) => {
+        const result = await getEmployiesAllActive()
+        if (result) {
+            event({
+                action:'all-active-employee',
+                data: result,
+                success: true
+            })
+        } else {
+            event({
+                action:'all-active-employee',
+                data: null,
+                success: false
+            })
+        }
+    },
+    'customer-by-phone': async (event: any, body: any) => {
+        const payload = body.payload;
+        const result = await getCustomersByPhone(payload.phone)
+        if (result) {
+            event({
+                action:'customer-by-phone',
+                data: result,
+                success: true
+            })
+        } else {
+            event({
+                action:'customer-by-phone',
+                data: null,
+                success: false
+            })
+        }
+    },
     // sell items
     'sell-item': async (event: any, body: any) => {
         const payload = body.payload;
@@ -443,6 +683,25 @@ export const actionController: { [key: string]: any } = {
     },
     // config 
     // reports
+    'add-to-stock':  async (event: any, body: any) => {
+        const payload = body.payload;
+        console.log(payload)
+        const result = await addStockToProduct(payload.id, payload.quantity);
+        console.log(result)
+        if (result) {
+            event({
+                action: 'add-to-stock',
+                data: result,
+                success: true
+            })
+        } else {
+            event({
+                action: 'add-to-stock',
+                data: null,
+                success: false
+            })
+        }
+    },
     'save-config': async (event: any, body: any) => {
         const payload = body.payload;
         const result = await saveOrUpdateConfig({ 
@@ -530,4 +789,3 @@ export const actions = (ipcMain: any) => {
     });
 
 }
-

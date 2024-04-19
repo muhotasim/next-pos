@@ -2,6 +2,7 @@ import { combineReducers, configureStore  } from "@reduxjs/toolkit";
 export interface StateType {
     isLogedIn: boolean,
     user: {
+        id:number|null
         firstName: string,
         lastName: string,
         username: string,
@@ -18,6 +19,7 @@ export interface StateType {
 const initialState:StateType= {
     isLogedIn: false,
     user: {
+        id: null,
         firstName: '',
         lastName: '',
         username: '',
@@ -106,6 +108,7 @@ const rootState = (state = initialState, action) => {
             config: action.payload.config
         };
         case Actions.LOGOUT:
+            localStorage.removeItem('user')
             return {
                 ...state,
                 isLogedIn: false,

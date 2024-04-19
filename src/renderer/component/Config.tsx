@@ -1,11 +1,12 @@
 import { Button, Col, Form, Input, Modal, Row, Select } from 'antd';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { Actions, actions } from '../root.store';
 import Icon from "../assets/512x512.png";
 import { ArrowLeft } from 'react-feather';
 export const Config = ({ goBack }) => {
     const dispatch = useDispatch()
+    const formRef = useRef(null)
     const [step, setStep] = useState<any>(0);
     const [config, setConfig] = useState({
         id: null,
@@ -28,6 +29,7 @@ export const Config = ({ goBack }) => {
         switch (arg.action) {
             case "get-config":
                 if (arg.success) {
+                    console.log(arg)
                     const configObj = {
                         id: arg.data.ConfigID,
                         shopName: arg.data.ShopName,
@@ -37,6 +39,16 @@ export const Config = ({ goBack }) => {
                         phone2: arg.data.Phone2
                     }
                     setConfig({...config,...configObj})
+                    if(formRef.current){
+                        formRef.current.setFieldsValue({
+                            shopName: arg.data.ShopName,
+                            shopAddress: arg.data.ShopAddress,
+                            lang: arg.data.Lang,
+                            phone: arg.data.Phone,
+                            phone2: arg.data.Phone2
+                        })
+                    }
+                    
                     dispatch({
                         type: Actions.SET_CONFIG,
                         payload: {
@@ -50,6 +62,9 @@ export const Config = ({ goBack }) => {
                 break;
             case "save-config":
                 if (arg.success) {
+                    Modal.success({
+                        title: "Successfully updated",
+                    })
                     window.electron.ipcRenderer.sendMessage('action', {
                         action: 'get-config',
                         params: {},
@@ -94,20 +109,19 @@ export const Config = ({ goBack }) => {
                     }
                 });
             }
-            
-            
         }
-
-        // You can handle form submission logic here
     };
     useEffect(() => {
-        window.electron.ipcRenderer.on('action-result', handleActionResult);
+       const uneventCallback = window.electron.ipcRenderer.on('action-result', handleActionResult);
 
         window.electron.ipcRenderer.sendMessage('action', {
             action: 'get-config',
             params: {},
             payload: {}
         });
+        return ()=>{
+            if(uneventCallback) uneventCallback();
+        }
     }, []);
     return (
         <div className="login-panel">
@@ -126,6 +140,7 @@ export const Config = ({ goBack }) => {
                 }}><span style={{paddingTop: '2px'}}><ArrowLeft size={14} /> </span><span>Back</span></Button>
             </div> : null}
             <Form
+                ref={formRef}
                 initialValues={config}
                 onFinish={onFinish}
                 layout="vertical"

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { Actions } from "../root.store";
 const Login = () => {
     const dispatch = useDispatch()
+    const [loginFailed, setLoginFailed] = useState(false)
     const [loading, setLoading] = useState(true)
     const handleActionResult = (arg) => {
         switch (arg.action) {
@@ -16,6 +17,7 @@ const Login = () => {
                 type: Actions.LOGIN,
                 payload: {
                     user: {
+                        id: arg.data.EmployeeID,
                         firstName: arg.data.FirstName,
                         lastName: arg.data.LastName,
                         username: arg.data.Username,
@@ -25,6 +27,9 @@ const Login = () => {
                     }
                 }
              })
+             setLoginFailed(false)
+            }else{
+                setLoginFailed(true)
             }
     
             break;
@@ -41,8 +46,11 @@ const Login = () => {
     const onFinishFailed = (errorInfo) => {
     };
     useEffect(() => {
-        window.electron.ipcRenderer.on('action-result', handleActionResult);
+        const  uneventCallback = window.electron.ipcRenderer.on('action-result', handleActionResult);
         setLoading(true);
+        return ()=>{
+            if(uneventCallback) uneventCallback();
+        }
     },[])
     return <>
         <div className="login-panel">
@@ -81,6 +89,7 @@ const Login = () => {
                 >
                     <Input.Password />
                 </Form.Item>
+                {loginFailed&&<p style={{color: 'red', marginTop: '-20px'}}>Invalid Coordentials</p>}
 
                 <Form.Item
                   
