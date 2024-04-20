@@ -128,7 +128,7 @@
   }
 
 
-  /* @media print {
+  @media print {
     body * {
       visibility: hidden;
     }
@@ -136,4 +136,4 @@
     .printable * {
       visibility: visible;
     }
-  } */
+  }

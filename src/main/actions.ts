@@ -70,7 +70,6 @@ export const actionController: { [key: string]: any } = {
     // },
     'dashboard': async (event: any, body: any) => {
         const result = await getDashboardData();
-        console.log(result)
         if (result) {
             event({
                 action: 'dashboard',
@@ -191,7 +190,6 @@ export const actionController: { [key: string]: any } = {
         if(results.ImgALoc){
             results.ImgALoc = getAssetPath(results.ImgALoc);
         }
-        console.log('product: ', results)
         if (results) {
             event({
                 action: 'get-products-by-id',
@@ -481,9 +479,7 @@ export const actionController: { [key: string]: any } = {
         const payload = body.payload;
         const employeeInfo = await getEmployeeById(id);
         let password = employeeInfo.Password;
-        // console.log('Password:',password,payload.password)
         if (payload.password != password) {
-            // console.log('password: ',payload.password, payload.password==password)
             password = createHash(payload.password)
         }
         const result = await updateEmployee(id, {
@@ -538,7 +534,6 @@ export const actionController: { [key: string]: any } = {
             Name: payload.Name,
             Phone: payload.Phone,
         })
-        console.log(result,payload)
         if (result) {
             event({
                 action: 'save-customer',
@@ -685,9 +680,7 @@ export const actionController: { [key: string]: any } = {
     // reports
     'add-to-stock':  async (event: any, body: any) => {
         const payload = body.payload;
-        console.log(payload)
         const result = await addStockToProduct(payload.id, payload.quantity);
-        console.log(result)
         if (result) {
             event({
                 action: 'add-to-stock',

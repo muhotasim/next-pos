@@ -29,7 +29,6 @@ export const Config = ({ goBack }) => {
         switch (arg.action) {
             case "get-config":
                 if (arg.success) {
-                    console.log(arg)
                     const configObj = {
                         id: arg.data.ConfigID,
                         shopName: arg.data.ShopName,

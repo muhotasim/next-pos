@@ -483,6 +483,9 @@ export const Seller = () => {
                         </tr>
                         })}
                     </table>
+                    <Button style={{marginRight: '10px', marginLeft: '10px'}} onClick={()=>{
+                        window.print()
+                    }}>Print</Button>
                     <Button type='primary' style={{float: 'right', marginTop:'25px'}} onClick={sell}>Sell</Button>
                     <p style={{clear: 'both', display: 'table', contain: ''}}></p>
             </Modal>

@@ -9,7 +9,6 @@ export const createProduct = async ({ Name, Description, Price, QuantityAvailabl
     const newProduct = {
       Name, Description, Price, QuantityAvailable, RealPrice, RegularPrice, ImgALoc, Discount, Categories
     };
-    console.log(newProduct)
     await db('Products').insert(newProduct).returning('*');
     return true;
   } catch (error) {
@@ -290,7 +289,6 @@ export const getDashboardData=async()=>{
   const currentDate = new Date();
   const formattedDate = currentDate.toISOString().split('T')[0];
   const todaysSell = await db('Sales').whereRaw("date(SaleDate) = ?", [formattedDate] ).sum({total: "TotalAmount"})
-  console.log("todays Sell: ",todaysSell)
   return {numberOfActiveSKU:numberOfActiveSKU[0].total, todaysSell: todaysSell[0].total}
 }
 export const getEmployiesAllActive = async ()=>{
@@ -587,7 +585,6 @@ export const saveOrUpdateConfig = async ({
   Phone2
 })=>{
   const config = await db('Config').first();
-  console.log( config.ConfigID)
   if(config){
     await db('Config').update({
       ShopName,

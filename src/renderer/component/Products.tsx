@@ -271,8 +271,8 @@ export const Products = () => {
         <Barcode displayValue={false} value={selectedStock.id?selectedStock.id:''} />
         </div>
         <Button onClick={()=>{
-            window.electron.ipcRenderer.sendMessage('print-receipt', document.getElementById('barcode-holder')?.innerHTML);
-            // window.print()
+            // window.electron.ipcRenderer.sendMessage('print-receipt', document.getElementById('barcode-holder')?.innerHTML);
+            window.print()
             }}><Printer size={16} style={{paddingTop: '2px', paddingRight: '10px'}}/> Print</Button>
         </Modal>
     </div>
