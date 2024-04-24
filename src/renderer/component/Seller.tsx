@@ -5,12 +5,12 @@ import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom';
 import { Actions, StateType } from '../root.store';
 import Barcode from 'react-barcode';
-let customerSearch:any = null;
+let customerSearch: any = null;
 export const Seller = () => {
     const dispatch = useDispatch();
-    const {products, categories, config, user} = useSelector((state: any)=>state.rootState)
+    const { products, categories, config, user } = useSelector((state: any) => state.rootState)
     const [allEmployees, setAllEmployees] = useState([])
-    const [advance, turnOfAdvance] = useState(false)
+    const [advance, turnOfAdvance] = useState(true)
     const [filterData, setFilterData] = useState({
         name: '',
         category: [],
@@ -20,11 +20,11 @@ export const Seller = () => {
         quantity_from: '',
         quantity_to: '',
     })
-    const [filterSKU, setFilterSKU] = useState({sku: ''})
+    const [filterSKU, setFilterSKU] = useState({ sku: '' })
     const [openAddStock, setOpenAddStock] = useState(false)
     const [confirmSell, setOpenConfirmSell] = useState(false)
-    const [soldBy, setSoldBy]= useState<null|number>(user.id)
-    const [customer, setCustomer]= useState<any>({
+    const [soldBy, setSoldBy] = useState<null | number>(user.id)
+    const [customer, setCustomer] = useState<any>({
         customerID: null,
         name: '',
         phone: ''
@@ -35,8 +35,8 @@ export const Seller = () => {
         quantity: 0
     })
     const [orderCart, setOrderCart] = useState<any>([])
-    const toggleStockModel = ()=>{setOpenAddStock(!openAddStock)}
-    const addToOrderCard = ({ ProductID, Name, Price, Quantity, Discount, RegularPrice,AvQT, ImgALoc })=>{
+    const toggleStockModel = () => { setOpenAddStock(!openAddStock) }
+    const addToOrderCard = ({ ProductID, Name, Price, Quantity, Discount, RegularPrice, AvQT, ImgALoc }) => {
         const temp = [...orderCart]
         temp.push({
             Name,
@@ -50,7 +50,7 @@ export const Seller = () => {
         })
         setOrderCart(temp);
     }
-    const updateOrderCart = (index, key, value)=>{
+    const updateOrderCart = (index, key, value) => {
         const temp = [...orderCart]
         temp[index][key] = value;
         setOrderCart(temp);
@@ -61,70 +61,70 @@ export const Seller = () => {
     const navigate = useNavigate()
     const onFinish = (values) => {
         console.log(values);
-        setFilterData({...filterData, sku: values.sku})
+        setFilterData({ ...filterData, sku: values.sku })
     }
     const handleActionResult = (arg) => {
         switch (arg.action) {
-          case "get-all-products":
-            if(arg.success){
-                dispatch({
-                    type: Actions.SET_PRODUCTS,
-                    payload:{
-                        products: arg.data.map(d=>{
-                            d.Categories = JSON.parse(d.Categories);
-                            return d;
-                        })
-                    }
-                })
-            }
-            break;
+            case "get-all-products":
+                if (arg.success) {
+                    dispatch({
+                        type: Actions.SET_PRODUCTS,
+                        payload: {
+                            products: arg.data.map(d => {
+                                d.Categories = JSON.parse(d.Categories);
+                                return d;
+                            })
+                        }
+                    })
+                }
+                break;
             case "get-all-category":
-                if(arg.success){
+                if (arg.success) {
                     dispatch({
                         type: Actions.SET_CATEGORIES,
-                        payload:{
+                        payload: {
                             categories: arg.data
                         }
                     })
                 }
-            break;
+                break;
             case "add-to-stock":
-                if(arg.success){
+                if (arg.success) {
                     setOpenAddStock(false);
                     window.electron.ipcRenderer.sendMessage('action', {
                         action: 'get-all-products',
                         params: {},
                         payload: {}
-                      });
+                    });
                 }
-            break;
+                break;
             case "all-active-employee":
-                if(arg.success){
-                    setAllEmployees(arg.data.map((d)=>({
-                        label: d.FirstName+' '+d.LastName,
+                if (arg.success) {
+                    setAllEmployees(arg.data.map((d) => ({
+                        label: d.FirstName + ' ' + d.LastName,
                         value: d.EmployeeID
                     })))
                 }
-            break;
+                break;
             case "customer-by-phone":
-                if(arg.success){
-                    console.log('Customers: ',arg.data)
+                if (arg.success) {
+                    console.log('Customers: ', arg.data)
                     setCustomerList(arg.data)
                 }
-            break;
+                break;
             case "save-customer":
 
                 console.log(arg.data, arg.data[0]?.CustomerID)
-            if(arg.success){
-                setCustomer({
-                    customerID: arg.data[0].CustomerID,
-                    name: arg.data[0].Name,
-                    phone: arg.data[0].Phone
-                });
-            }
-            break;
-            case  'sell-item':
-                if(arg.success){
+                if (arg.success) {
+                    setCustomer({
+                        customerID: arg.data[0].CustomerID,
+                        name: arg.data[0].Name,
+                        phone: arg.data[0].Phone
+                    });
+                }
+                break;
+            case 'sell-item':
+                if (arg.success) {
                     console.log(arg)
                     setOrderCart([]);
                     setCustomer({
@@ -135,23 +135,15 @@ export const Seller = () => {
                     setCustomerList([])
                     setOpenConfirmSell(false)
                     setOpenAddStock(false)
-                    
+
                 }
-            break;
+                break;
         }
         setLoading(false);
-      };
-      
-    const  onAddToStock= ()=>{
-        
-        window.electron.ipcRenderer.sendMessage('action', {
-            action: 'add-to-stock',
-            params: {},
-            payload: {...selectedStock}
-          });
-    }
-    useEffect(()=>{
-        const filterProducts = products.filter((product:any)=>{
+    };
+
+    useEffect(() => {
+        const filterProducts = products.filter((product: any) => {
             let nameCheck = true;
             let priceCheckFrom = true;
             let priceCheckTo = true;
@@ -159,128 +151,134 @@ export const Seller = () => {
             let quantityCheckTo = true;
             let categoryCheck = true;
             let skuCheck = true;
-            if(filterData.name ){
+            if (filterData.name) {
                 nameCheck = product.Name.toLowerCase().includes(filterData.name.toLowerCase());
             }
-            if(filterData.sku ){
+            if (filterData.sku) {
                 skuCheck = product.ProductID == filterData.sku;
             }
-            if(filterData?.category?.length){
+            if (filterData?.category?.length) {
                 let found = false;
-                for(let category of product.Categories){
+                for (let category of product.Categories) {
                     categoryCheck = filterData.category.includes(category);
-                    if(categoryCheck) {
+                    if (categoryCheck) {
                         found = true;
                         break;
                     }
                 }
-                if(!found){
+                if (!found) {
                     categoryCheck = false;
                 }
                 // 
             }
-            if(filterData.price_from){
-                priceCheckFrom = product.Price>=filterData.price_from
+            if (filterData.price_from) {
+                priceCheckFrom = product.Price >= filterData.price_from
             }
-            if(filterData.price_to){
-                priceCheckTo = product.Price<=filterData.price_to
+            if (filterData.price_to) {
+                priceCheckTo = product.Price <= filterData.price_to
             }
-            
-            if(filterData.quantity_from){
-                quantityCheckFrom = product.QuantityAvailable>=filterData.quantity_from
+
+            if (filterData.quantity_from) {
+                quantityCheckFrom = product.QuantityAvailable >= filterData.quantity_from
             }
-            if(filterData.quantity_to){
-                quantityCheckTo = product.QuantityAvailable<=filterData.quantity_to
+            if (filterData.quantity_to) {
+                quantityCheckTo = product.QuantityAvailable <= filterData.quantity_to
             }
-        return nameCheck && priceCheckFrom && priceCheckTo && quantityCheckFrom && quantityCheckTo && skuCheck;
+            return nameCheck && priceCheckFrom && priceCheckTo && quantityCheckFrom && quantityCheckTo && skuCheck;
         })
         setFilterdProducts([...filterProducts])
-    }, [products,filterData])
-    const filterBYSKU = (values)=>{
-        setFilterData({...filterData, sku: values.sku})
-        const product = products.find(d=>d.ProductID==values.sku)
-        let inIndex = orderCart.findIndex(d=>d.ProductID==values.sku)
-        if(inIndex == -1){
-            addToOrderCard({ImgALoc: product.ImgALoc,Name: product.Name, AvQT: product.QuantityAvailable, Quantity: 1,Discount: product.Discount, Price: product.Price, RegularPrice: product.RegularPrice, ProductID: product.ProductID})
-        }else{
-            console.log(orderCart[inIndex].QuantityAvailable)
-            updateOrderCart(inIndex, 'QuantityAvailable', Number(orderCart[inIndex].QuantityAvailable)+1)
+    }, [products, filterData])
+    const filterBYSKU = (values) => {
+        setFilterData({ ...filterData, sku: values.sku })
+        const product = products.find(d => d.ProductID == values.sku)
+        let inIndex = orderCart.findIndex(d => d.ProductID == values.sku)
+        if (product) {
+            if (inIndex == -1) {
+                addToOrderCard({ ImgALoc: product.ImgALoc, Name: product.Name, AvQT: product.QuantityAvailable, Quantity: 1, Discount: product.Discount, Price: product.Price, RegularPrice: product.RegularPrice, ProductID: product.ProductID })
+            } else {
+                if (product.QuantityAvailable > orderCart[inIndex].Quantity) {
+
+                    updateOrderCart(inIndex, 'Quantity', Number(orderCart[inIndex].Quantity) + 1)
+                }
+            }
         }
+
     }
-    const sell = ()=>{
+    const sell = () => {
         const payload = {
             customerId: customer.customerID,
             employeeId: soldBy,
-            items: orderCart.map((item)=>{
+            items: orderCart.map((item) => {
                 return {
                     productID: item.ProductID,
                     quantity: item.Quantity,
-                    unitPrice: (Number( item.Price )* Number(item.Quantity))-((Number( item.Price )*Number(item.Discount))/100),
+                    unitPrice: (Number(item.Price) * Number(item.Quantity)) - ((Number(item.Price) * Number(item.Discount)) / 100),
                     realPrice: item.RegularPrice,
                     discount: item.Discount
                 }
             })
-            
+
         }
         window.electron.ipcRenderer.sendMessage('action', {
             action: 'sell-item',
             params: {},
             payload: payload
-          });
+        });
         // window.electron.ipcRenderer.sendMessage('action', {
         //     action: 'add-to-stock',
         //     params: {},
         //     payload: {...selectedStock}
         //   });
+        setOrderCart([])
     }
 
-    useEffect(()=>{
-      const uneventCallback =  window.electron.ipcRenderer.on('action-result', handleActionResult);
+    useEffect(() => {
+        const uneventCallback = window.electron.ipcRenderer.on('action-result', handleActionResult);
         window.electron.ipcRenderer.sendMessage('action', {
             action: 'get-all-products',
             params: {},
             payload: {}
-          });
-          window.electron.ipcRenderer.sendMessage('action', {
+        });
+        window.electron.ipcRenderer.sendMessage('action', {
             action: 'get-all-category',
             params: {},
             payload: {}
-          });
-          window.electron.ipcRenderer.sendMessage('action', {
+        });
+        window.electron.ipcRenderer.sendMessage('action', {
             action: 'all-active-employee',
             params: {},
             payload: {}
-          });
-          return ()=>{
-            if(uneventCallback) uneventCallback();
-            if(customerSearch){
+        });
+        return () => {
+            if (uneventCallback) uneventCallback();
+            if (customerSearch) {
                 clearTimeout(customerSearch);
             }
         }
-    },[])
+    }, [])
 
 
 
     return <div className='page'>
-        <Button style={{display: 'flex', marginBottom: '2rem'}} onClick={() => navigate('/')}><ArrowLeft size={16} style={{paddingTop: '3px'}}/> Back</Button>
+        <Button style={{ display: 'flex', marginBottom: '2rem' }} onClick={() => navigate('/')}><ArrowLeft size={16} style={{ paddingTop: '3px' }} /> Back</Button>
 
         <div className='filters'>
-            <span style={{fontSize: '18px', marginBottom: '20px', float: 'right', cursor: 'pointer'}}><span onClick={()=>{turnOfAdvance(true)}} style={advance?{background: 'var(--primary-color)', color: 'white', padding: '5px', borderRadius: '5px', cursor: 'pointer'}:{}}>Bu SKU</span>/<span onClick={()=>{turnOfAdvance(false)}} style={!advance?{background: 'var(--primary-color)', color: 'white', padding: '5px', borderRadius: '5px'}:{}}>Advance</span></span>
-            {advance&&<Form layout="inline" 
-            initialValues={filterSKU}
-            onFinish={filterBYSKU}
-            onValuesChange={(val, values: any) => {
+            <span style={{ fontSize: '18px', marginBottom: '20px', float: 'right', cursor: 'pointer' }}><span onClick={() => { turnOfAdvance(true) }} style={advance ? { background: 'var(--primary-color)', color: 'white', padding: '5px', borderRadius: '5px', cursor: 'pointer' } : {}}>BY SKU</span>/<span onClick={() => { turnOfAdvance(false) }} style={!advance ? { background: 'var(--primary-color)', color: 'white', padding: '5px', borderRadius: '5px' } : {}}>Advance</span></span>
+            {advance && <Form layout="inline"
+                initialValues={filterSKU}
+                onFinish={filterBYSKU}
+                onValuesChange={(val, values: any) => {
                     setFilterSKU(values);
                 }}>
-                        <Form.Item
-                            name="sku"
-                            label="Sku"
-                        >
-                            <Input />
-                        </Form.Item>
-                        <Button htmlType="submit">Submit</Button>
+                <Form.Item
+                    name="sku"
+                    label="Sku"
+                >
+                    <Input />
+                </Form.Item>
+                <Button htmlType="submit">Submit</Button>
             </Form>}
-            {!advance&&<Form initialValues={filterData}
+            {!advance && <Form initialValues={filterData}
                 onFinish={onFinish}
                 layout="vertical"
                 onValuesChange={(val, values: any) => {
@@ -360,82 +358,83 @@ export const Seller = () => {
                     </Col>
                 </Row>
             </Form>}
-            <p className='clearfix' style={{display: 'table', clear: 'both', content: ' '}}></p>
+            <p className='clearfix' style={{ display: 'table', clear: 'both', content: ' ' }}></p>
         </div>
         <Row gutter={15}>
-                <Col span={16}>
-        <div className='products seller'>
-            
-                    {filteredProducts.map((product:any, index)=>{
-                        const existsOnCart = orderCart.find(d=>d.ProductID==product.ProductID)
-                        return <ProductCard canAdd={!existsOnCart} add={()=>{
-                            addToOrderCard({ImgALoc: product.ImgALoc,Name: product.Name, AvQT: product.QuantityAvailable, Quantity: 1,Discount: product.Discount, Price: product.Price, RegularPrice: product.RegularPrice, ProductID: product.ProductID})
-                        }}  key={index} img={product.ImgALoc} name={product.Name} discount={product.Discount} description={product.Description} quantity={product.QuantityAvailable} price={product.Price}
-                        regularPrice={product.RealPrice}
+            <Col span={16}>
+                <div className='products seller' style={{ gridTemplateColumns: "none" }}>
+
+                    {filteredProducts.map((product: any, index) => {
+                        const existsOnCart = orderCart.find(d => d.ProductID == product.ProductID)
+                        return <ProductCard canAdd={!existsOnCart} add={() => {
+                            // addToOrderCard({ImgALoc: product.ImgALoc,Name: product.Name, AvQT: product.QuantityAvailable, Quantity: 1,Discount: product.Discount, Price: product.Price, RegularPrice: product.RegularPrice, ProductID: product.ProductID})
+                            filterBYSKU({ sku: product.ProductID })
+                        }} key={index} img={product.ImgALoc} name={product.Name} discount={product.Discount} description={product.Description} quantity={product.QuantityAvailable} price={product.Price}
+                            regularPrice={product.RealPrice}
                         />
                     })}
-            
-        </div>    </Col>
-                <Col span={6}>
-                    <div style={{textAlign: 'center'}} className='sell-recipt'>
+
+                </div>    </Col>
+            <Col span={6}>
+                <div style={{ textAlign: 'center' }} className='sell-recipt'>
                     <h4>{config.shopName}</h4>
                     <p>{config.shopAddress}</p>
-                    <p>Phone: {config.phone} {config.phone2?`.${config.phone2}`:''}</p>
-                    </div>
-                    <table className='order-placement'>
-                        <tr>
-                            <td style={{fontWeight: 600}}>Product</td>
-                            <td style={{fontWeight: 600}}>Quantity</td>
-                            <td style={{fontWeight: 600}}>Price</td>
-                            <td style={{fontWeight: 600}}>Total</td>
-                        </tr>
-                        {orderCart.map((cart,index)=>{
-                            let net = cart.Price*cart.Quantity;
-                            return <tr key={index}>
+                    <p>Phone: {config.phone} {config.phone2 ? `.${config.phone2}` : ''}</p>
+                </div>
+                <table className='order-placement'>
+                    <tr>
+                        <td style={{ fontWeight: 600 }}>Product</td>
+                        <td style={{ fontWeight: 600 }}>Quantity</td>
+                        <td style={{ fontWeight: 600 }}>Price</td>
+                        <td style={{ fontWeight: 600 }}>Total</td>
+                    </tr>
+                    {orderCart.map((cart, index) => {
+                        let net = cart.Price * cart.Quantity;
+                        return <tr key={index}>
                             <td>{cart.Name}({cart.ProductID})</td>
-                            <td><Input style={{width: '60px'}} value={cart.Quantity} onChange={(e)=>{
-                                if(cart.AvQT<e.target.value) return
-                                if(isNaN(Number(e.target.value))){
+                            <td><Input style={{ width: '60px' }} value={cart.Quantity} onChange={(e) => {
+                                if (cart.AvQT < e.target.value) return
+                                if (isNaN(Number(e.target.value))) {
                                     updateOrderCart(index, 'Quantity', 0)
                                 }
                                 updateOrderCart(index, 'Quantity', Number(e.target.value))
-                            }}/></td>
+                            }} /></td>
                             <td>{cart.Price}</td>
                             <td>{net}</td>
                         </tr>
-                        })}
-                    </table>
-                    <div>
-                        Sold By: <Select style={{width: '100%'}} options={allEmployees} value={soldBy} onChange={(v)=>{setSoldBy(v)}}/>
-                    </div>
-                    <div style={{marginTop: '25px'}}>
-                        <label>Customer:</label> 
-                        
-                        <Input style={{width: '100%', marginBottom: '15px'}} placeholder='Customer Phone' value={customer.phone} onChange={(e)=>{
-                            setCustomer({...customer, phone: e.target.value, customerID: null})
-                            if(customerSearch){
-                                clearTimeout(customerSearch)
-                            }
-                            customerSearch = setTimeout(()=>{
-                                console.log('getting ')
-                                window.electron.ipcRenderer.sendMessage('action', {
-                                    action: 'customer-by-phone',
-                                    params: {},
-                                    payload: {
-                                        phone: e.target.value
-                                    }
-                                  });
-                            }, 400)
-                            }}/>
+                    })}
+                </table>
+                <div>
+                    Sold By: <Select style={{ width: '100%' }} options={allEmployees} value={soldBy} onChange={(v) => { setSoldBy(v) }} />
+                </div>
+                <div style={{ marginTop: '25px' }}>
+                    <label>Customer:</label>
 
-                        {(customer.phone&&customerList.length==0)&&<Input  placeholder='Customer Name' style={{width: '100%', marginBottom: '15px'}} value={customer.name} onChange={(e)=>{
-                            setCustomer({...customer, name: e.target.value})
-                         
-                            }}/>}
-                            <ul>
-                            {
-                            customerList.map((customer=>{
-                                return <li onClick={()=>{
+                    <Input style={{ width: '100%', marginBottom: '15px' }} placeholder='Customer Phone' value={customer.phone} onChange={(e) => {
+                        setCustomer({ ...customer, phone: e.target.value, customerID: null })
+                        if (customerSearch) {
+                            clearTimeout(customerSearch)
+                        }
+                        customerSearch = setTimeout(() => {
+                            console.log('getting ')
+                            window.electron.ipcRenderer.sendMessage('action', {
+                                action: 'customer-by-phone',
+                                params: {},
+                                payload: {
+                                    phone: e.target.value
+                                }
+                            });
+                        }, 400)
+                    }} />
+
+                    {(customer.phone && customerList.length == 0) && <Input placeholder='Customer Name' style={{ width: '100%', marginBottom: '5px' }} value={customer.name} onChange={(e) => {
+                        setCustomer({ ...customer, name: e.target.value })
+
+                    }} />}
+                    <ul style={{padding: '0'}}>
+                        {
+                            customerList.map((customer => {
+                                return <li style={{cursor: 'pointer', background: 'var(--secondary-color-2)', color: 'white', padding: '5px', borderRadius: '3px'}} onClick={() => {
                                     setCustomer({
                                         customerID: customer.CustomerID,
                                         name: customer.Name,
@@ -445,76 +444,79 @@ export const Seller = () => {
                                 }}>{customer.Name || customer.FirstName}</li>
                             }))
                         }
-                            </ul>
-                        {customer.phone&&customer.name&&!customer.customerID&&customerList.length==0&&<Button onClick={()=>{
-                            window.electron.ipcRenderer.sendMessage('action', {
-                                action: 'save-customer',
-                                params: {},
-                                payload: {
-                                    Name: customer.name,
-                                    Phone: customer.phone,
-                                }
-                              });
-                        }}>Create Customer</Button>}
-                    </div>
-                    {orderCart.length>0&&<Button type='primary' style={{float: 'right', marginTop: '25px'}} onClick={()=>{setOpenConfirmSell(true)}}>Confirm Sell</Button>}
-                </Col>
-            </Row>
-            <Modal open={confirmSell} onCancel={()=>{setOpenConfirmSell(false)}} footer={null}>
-            <div style={{textAlign: 'center'}} className='sell-recipt'>
-                    <h4>{config.shopName}</h4>
-                    <p>{config.shopAddress}</p>
-                    <p>Phone: {config.phone} {config.phone2?`.${config.phone2}`:''}</p>
-                    </div>
-                    <table className='order-placement'>
-                        <tr>
-                            <td style={{fontWeight: 600}}>Product</td>
-                            <td style={{fontWeight: 600}}>Quantity</td>
-                            <td style={{fontWeight: 600}}>Price</td>
-                            <td style={{fontWeight: 600}}>Total</td>
+                    </ul>
+                    {customer.phone && customer.name && !customer.customerID && customerList.length == 0 && <Button onClick={() => {
+                        window.electron.ipcRenderer.sendMessage('action', {
+                            action: 'save-customer',
+                            params: {},
+                            payload: {
+                                Name: customer.name,
+                                Phone: customer.phone,
+                            }
+                        });
+                    }}>Create Customer</Button>}
+                </div>
+                {orderCart.length > 0 && <Button type='primary' style={{ float: 'right', marginTop: '25px' }} onClick={() => { setOpenConfirmSell(true) }}>Confirm Sell</Button>}
+            </Col>
+        </Row>
+        <Modal open={confirmSell} onCancel={() => { setOpenConfirmSell(false) }} footer={null}>
+            <div className='printable'>
+                <div style={{ textAlign: 'center', marginBottom: '15px' }} className='sell-recipt'>
+                    <h4 style={{padding: '2px', margin: '0'}}>{config.shopName}</h4>
+                    <p style={{padding: '2px', margin: '0'}}>{config.shopAddress}</p>
+                    <p style={{padding: '2px', margin: '0'}}>Phone: {config.phone} {config.phone2 ? `.${config.phone2}` : ''}</p>
+                </div>
+                <table className='order-placement' style={{borderSpacing:"0"}}>
+                    <tr>
+                        <td style={{ fontWeight: 600, border: '1px solid black', borderBottom: '0', padding: '3px' }}>Product</td>
+                        <td style={{ fontWeight: 600, border: '1px solid black', borderBottom: '0', padding: '3px' }}>Quantity</td>
+                        <td style={{ fontWeight: 600, border: '1px solid black', borderBottom: '0', padding: '3px' }}>Price</td>
+                        <td style={{ fontWeight: 600, border: '1px solid black', borderBottom: '0', padding: '3px' }}>Total</td>
+                    </tr>
+                    {orderCart.map((cart, index) => {
+                        let net = cart.Price * cart.Quantity;
+                        return <tr key={index}>
+                            <td style={{border: '1px solid black'}}>{cart.Name}({cart.ProductID})</td>
+                            <td style={{border: '1px solid black'}}>{cart.Quantity}</td>
+                            <td style={{border: '1px solid black'}}>{cart.Price}</td>
+                            <td style={{border: '1px solid black'}}>{net}</td>
                         </tr>
-                        {orderCart.map((cart,index)=>{
-                            let net = cart.Price*cart.Quantity;
-                            return <tr key={index}>
-                            <td>{cart.Name}({cart.ProductID})</td>
-                            <td>{cart.Quantity}</td>
-                            <td>{cart.Price}</td>
-                            <td>{net}</td>
-                        </tr>
-                        })}
-                    </table>
-                    <Button style={{marginRight: '10px', marginLeft: '10px'}} onClick={()=>{
-                        window.print()
-                    }}>Print</Button>
-                    <Button type='primary' style={{float: 'right', marginTop:'25px'}} onClick={sell}>Sell</Button>
-                    <p style={{clear: 'both', display: 'table', contain: ''}}></p>
-            </Modal>
+                    })}
+                </table>
+            </div>
+
+            <Button style={{ marginRight: '10px', marginLeft: '10px', marginTop: '25px' }} onClick={() => {
+                window.print()
+            }}>Print</Button>
+            <Button type='primary' style={{ float: 'right', marginTop: '25px' }} onClick={sell}>Sell</Button>
+            <p style={{ clear: 'both', display: 'table', contain: '' }}></p>
+        </Modal>
     </div>
 }
 
-const ProductCard = ({img, name,description,add,canAdd = true, quantity, price, regularPrice, discount})=>{
+const ProductCard = ({ img, name, description, add, canAdd = true, quantity, price, regularPrice, discount }) => {
     return <div className='product-card'>
-       <div className='main-details'>
-       <div className='img'>
-            <img src={img} alt='No Image'/>
+        <div className='main-details'>
+            <div className='img'>
+                <img src={img} alt='No Image' />
+            </div>
+            <div className='details'>
+                <h3>{name}</h3>
+                <p>{description}</p>
+                <Button onClick={add}>Add</Button>
+            </div>
         </div>
-        <div className='details'>
-            <h3>{name}</h3>
-            <p>{description}</p>
-            <Button disabled={!canAdd} onClick={add}>Add</Button>
-        </div>
-       </div>
 
         <div className='summery'>
-                <div className='quantity'><strong>Quantity:</strong><span>{quantity} </span></div>
-                <div className='price'>
+            <div className='quantity'><strong>Quantity:</strong><span>{quantity} </span></div>
+            <div className='price'>
 
-                    <div>
+                <div>
                     <strong>Regular Price:</strong><span>{regularPrice}</span>
-                    </div>
-                    <div><strong>Discount:</strong> <span>{discount}</span></div>
-                    <div><strong>Price:</strong> <span>{price}</span></div>
                 </div>
+                <div><strong>Discount:</strong> <span>{discount}</span></div>
+                <div><strong>Price:</strong> <span>{price}</span></div>
             </div>
+        </div>
     </div>
 }

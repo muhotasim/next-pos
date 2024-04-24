@@ -105,7 +105,13 @@
     padding: 1rem;
     border-radius: .5rem;
     font-size: 12px;
-    gap: 2rem;
+    gap: 1rem;
+  }
+  .products .product-card .img{
+
+    justify-content: center;
+    display: flex;
+    align-items: center;
   }
   .products .product-card img{
     height: 80px;

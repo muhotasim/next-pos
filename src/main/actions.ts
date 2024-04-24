@@ -26,48 +26,6 @@ function verifyHash(data, hashToCompare) {
     return generatedHash === hashToCompare;
 }
 export const actionController: { [key: string]: any } = {
-    // products crud
-    // 'save-product': async (event: any, body: any) => {
-    //     const payload = body.payload;
-    //     const productData:any = { Name: payload.name,
-    //         Description: payload.description ?? '',
-    //         QuantityAvailable: payload.quantity,
-    //         RealPrice: payload.realprice,
-    //         RegularPrice: payload.regularprice,
-    //         Discount: payload.discount,
-    //         Price: payload.price, Categories: payload.category?JSON.stringify(payload.category):JSON.stringify([]) }
-    //     let outputPath = ''
-    //     if(payload.file){
-    //         const filePath = '/assets/uploads'
-    //         const file = await readFile(payload.file);
-    //         const resizedBuffer = await sharp(file)
-    //             .resize(256, 256)
-    //             .toBuffer();
-    //         const assetsDir = path.join(__dirname, '../..'+filePath);
-    //         const outputFileName = 'p_img_'+new Date().getTime()+'.png';
-    //         outputPath = path.join(assetsDir, outputFileName);
-    //         await writeFile(outputPath, resizedBuffer);
-            
-    //         productData.ImgALoc= payload.file?`/uploads/${outputFileName}`:'';
-    //     }
-        
-    //     const result = await createProduct(productData)
-    //        await createCategory(payload.category.map((c)=>({Name: c})))
-        
-    //     if (result) {
-    //         event({
-    //             action: 'save-product',
-    //             data: body,
-    //             success: true
-    //         })
-    //     } else {
-    //         event({
-    //             action: 'save-product',
-    //             data: null,
-    //             success: false
-    //         })
-    //     }
-    // },
     'dashboard': async (event: any, body: any) => {
         const result = await getDashboardData();
         if (result) {
@@ -85,6 +43,7 @@ export const actionController: { [key: string]: any } = {
         }
     },
     'save-product': async (event: any, body: any) => {
+        const appDirectory = app.getAppPath();
         const payload = body.payload;
         const productData:any = { Name: payload.name,
             Description: payload.description ?? '',
@@ -95,22 +54,26 @@ export const actionController: { [key: string]: any } = {
             Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
         let outputPath = ''
         if (payload.file) {
-            const filePath = '/assets/uploads'
-            const assetsDir = path.join(__dirname, '../..' + filePath);
+            const filePath =  path.join(__dirname, '..', '..','assets' , 'uploads')//'/assets/uploads'
+            const assetsDir = filePath;
             const outputFileName = 'p_img_' + new Date().getTime() + '.png';
             outputPath = path.join(assetsDir, outputFileName);
             const file = await readFile(payload.file);
             const image = await Jimp.read(file);
             const resizedImage = image.resize(256, 256);
-            
+            console.log(outputPath)
 
             await resizedImage.writeAsync(outputPath);
             
-            productData.ImgALoc = payload.file ? `/uploads/${outputFileName}` : '';
+            productData.ImgALoc = payload.file ? outputPath : '';
         }
         
         const result = await createProduct(productData);
-        await createCategory(payload.category.map((c) => ({ Name: c })));
+        const categories = await getAllCategories()
+        const cCategories = payload.category.filter(d=>{ 
+            return (categories.find(c=>d.Name==c))
+         }).map((c) => ({ Name: c }));
+         if(cCategories.length) await createCategory(cCategories);
         
         if (result) {
             event({
@@ -149,7 +112,7 @@ export const actionController: { [key: string]: any } = {
             event({
                 action: 'get-all-products',
                 data: products.map((d)=>{
-                    d.ImgALoc = d.ImgALoc?getAssetPath(d.ImgALoc):''
+                    d.ImgALoc = d.ImgALoc
                     return d
                 }),
                 success: true
@@ -188,7 +151,7 @@ export const actionController: { [key: string]: any } = {
         const id = body.params.id;
         const results = await getProductById(id);
         if(results.ImgALoc){
-            results.ImgALoc = getAssetPath(results.ImgALoc);
+            results.ImgALoc = results.ImgALoc;
         }
         if (results) {
             event({
@@ -204,49 +167,6 @@ export const actionController: { [key: string]: any } = {
             })
         }
     },
-    // 'update-product': async (event: any, body: any) => {
-        
-    //     const id = body.params.id;
-    //     const prevProduct = await getProductById(id);
-    //     const payload = body.payload;
-    //     let outputPath = ''
-    //     const upProductData:any = { Name: payload.name,
-    //         Description: payload.description ?? '',
-    //         QuantityAvailable: payload.quantity,
-    //         RealPrice: payload.realprice,
-    //         RegularPrice: payload.regularprice,
-    //         Discount: payload.discount,
-    //         Price: payload.price, Categories: payload.category?JSON.stringify(payload.category):JSON.stringify([]) }
-    //     if(payload.file &&prevProduct.ImgALoc!=payload.file){
-    //         const filePath = '/assets/uploads'
-    //         const file = await readFile(payload.file);
-    //         const resizedBuffer = await sharp(file)
-    //             .resize(256, 256)
-    //             .toBuffer();
-    //         const assetsDir = path.join(__dirname, '../..'+filePath);
-    //         const outputFileName = 'p_img_'+new Date().getTime()+'.png';
-    //         outputPath = path.join(assetsDir, outputFileName);
-    //         await writeFile(outputPath, resizedBuffer);
-            
-    //         upProductData.ImgALoc= payload.file?`/uploads/${outputFileName}`:'';
-    //     }
-        
-    //     const result = await updateProduct(id, upProductData)
-    //     if (result) {
-    //         event({
-    //             action: 'update-product',
-    //             data: result,
-    //             success: true
-    //         })
-    //     } else {
-    //         event({
-    //             action: 'update-product',
-    //             data: null,
-    //             success: false
-    //         })
-    //     }
-    // },
-  
 'update-product': async (event: any, body: any) => {
     const id = body.params.id;
     const prevProduct = await getProductById(id);
@@ -260,8 +180,9 @@ export const actionController: { [key: string]: any } = {
         Discount: payload.discount,
         Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
     if (payload.file && prevProduct.ImgALoc != payload.file) {
-        const filePath = '/assets/uploads'
-        const assetsDir = path.join(__dirname, '../..' + filePath);
+        
+        const filePath =  path.join(__dirname, '..', '..','assets' , 'uploads')//'/assets/uploads'
+        const assetsDir = filePath;
         const outputFileName = 'p_img_' + new Date().getTime() + '.png';
         outputPath = path.join(assetsDir, outputFileName);
         const file = await readFile(payload.file);
@@ -272,10 +193,17 @@ export const actionController: { [key: string]: any } = {
 
         await image.writeAsync(outputPath);
         
-        upProductData.ImgALoc = payload.file ? `/uploads/${outputFileName}` : '';
+        
+        upProductData.ImgALoc = payload.file ? outputPath : '';
     }
     
     const result = await updateProduct(id, upProductData)
+    const categories = await getAllCategories()
+    const cCategories = payload.category.filter(d=>{ 
+        return (categories.find(c=>d.Name==c))
+     }).map((c) => ({ Name: c }));
+     if(cCategories.length) await createCategory(cCategories);
+
     if (result) {
         event({
             action: 'update-product',

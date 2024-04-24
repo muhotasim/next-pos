@@ -114,8 +114,13 @@ export const getProductById = async (productId) => {
 
 export const createCategory = async (categoryData) => {
   try {
-    const category = await db('Categories').insert(categoryData).returning('*');
-    return category;
+    if(categoryData.length){
+
+      const category = await db('Categories').insert(categoryData).returning('*');
+      return category;
+    }else{
+      return []
+    }
   } catch (error) {
     return false;
   }
