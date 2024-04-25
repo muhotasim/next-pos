@@ -60,8 +60,12 @@ export const actionController: { [key: string]: any } = {
             outputPath = path.join(assetsDir, outputFileName);
             const file = await readFile(payload.file);
             const image = await Jimp.read(file);
+            if (!fs.existsSync(assetsDir)) {
+                fs.mkdirSync(assetsDir);
+              }
             const resizedImage = image.resize(256, 256);
-            console.log(outputPath)
+
+            
 
             await resizedImage.writeAsync(outputPath);
             
@@ -187,11 +191,14 @@ export const actionController: { [key: string]: any } = {
         outputPath = path.join(assetsDir, outputFileName);
         const file = await readFile(payload.file);
         const image = await Jimp.read(file);
+        if (!fs.existsSync(assetsDir)) {
+            fs.mkdirSync(assetsDir);
+          }
         await image.resize(256, 256)
             .writeAsync(outputPath);
         
 
-        await image.writeAsync(outputPath);
+        // await image.writeAsync(outputPath);
         
         
         upProductData.ImgALoc = payload.file ? outputPath : '';
