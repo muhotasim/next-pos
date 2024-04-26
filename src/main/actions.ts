@@ -43,7 +43,6 @@ export const actionController: { [key: string]: any } = {
         }
     },
     'save-product': async (event: any, body: any) => {
-        const appDirectory = app.getAppPath();
         const payload = body.payload;
         const productData:any = { Name: payload.name,
             Description: payload.description ?? '',
@@ -54,18 +53,17 @@ export const actionController: { [key: string]: any } = {
             Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
         let outputPath = ''
         if (payload.file) {
-            const filePath =  path.join(__dirname, '..', '..','assets' , 'uploads')//'/assets/uploads'
+            const appPath = app.getAppPath();
+            const filePath =  path.join(appPath,'assets' , 'uploads')//'/assets/uploads'
             const assetsDir = filePath;
             const outputFileName = 'p_img_' + new Date().getTime() + '.png';
             outputPath = path.join(assetsDir, outputFileName);
             const file = await readFile(payload.file);
             const image = await Jimp.read(file);
-            if (!fs.existsSync(assetsDir)) {
-                fs.mkdirSync(assetsDir);
+            if (!fs.existsSync(filePath)) {
+                fs.mkdirSync(filePath);
               }
             const resizedImage = image.resize(256, 256);
-
-            
 
             await resizedImage.writeAsync(outputPath);
             
@@ -185,14 +183,15 @@ export const actionController: { [key: string]: any } = {
         Price: payload.price, Categories: payload.category ? JSON.stringify(payload.category) : JSON.stringify([]) }
     if (payload.file && prevProduct.ImgALoc != payload.file) {
         
-        const filePath =  path.join(__dirname, '..', '..','assets' , 'uploads')//'/assets/uploads'
+        const appPath = app.getAppPath();
+        const filePath =  path.join(appPath,'assets' , 'uploads')//'/assets/uploads'
         const assetsDir = filePath;
         const outputFileName = 'p_img_' + new Date().getTime() + '.png';
         outputPath = path.join(assetsDir, outputFileName);
         const file = await readFile(payload.file);
         const image = await Jimp.read(file);
-        if (!fs.existsSync(assetsDir)) {
-            fs.mkdirSync(assetsDir);
+        if (!fs.existsSync(filePath)) {
+            fs.mkdirSync(filePath);
           }
         await image.resize(256, 256)
             .writeAsync(outputPath);
